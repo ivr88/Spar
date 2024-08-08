@@ -1,10 +1,11 @@
 import Foundation
 
 struct Model: Codable {
-    let prodact: [Product]
+    let product: [Product]
 }
 
 struct Product: Codable {
+    let id: Int
     let image: String
     let description: String
     let country: Country
@@ -12,7 +13,7 @@ struct Product: Codable {
     let rating: String?
     let reviews: String?
     let discount: Bool
-    let badge: Badge
+    let badge: Badge?
     let hasPicker: Bool
     let price: String
     let measure: Measure

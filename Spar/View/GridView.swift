@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct GridView: View {
-    let items = Array(1...10).map { "Item \($0)" } //временно
     @State private var favorite = "Шт" //временно
     var favorites = ["Шт", "Кг"] //временно
+    @ObservedObject var viewModel = ViewModel()
     @State var tapOnCard = false
     @State var tapOnHeart = false
 
@@ -15,34 +15,40 @@ struct GridView: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(items, id: \.self) { item in
+                ForEach(viewModel.model?.product ?? [], id: \.id) { product in
                     VStack (alignment: .leading) {
                         ZStack {
-                            Image("Apples")
+                            Image(product.image)
                                 .resizable()
                                 .scaledToFit()
                             HStack {
-                                Image(systemName: "star.fill")
-                                    .foregroundColor(.yellow)
-                                Text("4.1")
-                                    .foregroundStyle(.black)
-                                    .font(.system(size: 12))
-                                    .fontWeight(.regular)
+                                if let rating = product.rating {
+                                    Image(systemName: "star.fill")
+                                        .foregroundColor(.yellow)
+                                    Text(rating)
+                                        .foregroundStyle(.black)
+                                        .font(.system(size: 12))
+                                        .fontWeight(.regular)
+                                }
                                 Spacer()
-                                Text("25%")
-                                    .foregroundStyle(Color(UIColor(named: "#C32323") ?? .red))
-                                    .font(.system(size: 16))
-                                    .fontWeight(.bold)
+                                if product.discount {
+                                    Text(viewModel.discountCalculation(newPrice: product.price, oldPrice: product.oldPrice))
+                                        .foregroundStyle(Color(UIColor(named: "#C32323") ?? .red))
+                                        .font(.system(size: 16))
+                                        .fontWeight(.bold)
+                                }
                             }
                             .offset(y: 70)
-                            Text("Удар по ценам")
-                                .foregroundStyle(.white)
-                                .font(.system(size: 10))
-                                .fontWeight(.regular)
-                                .padding(EdgeInsets(top: 2, leading: 12, bottom: 4, trailing: 6))
-                                .background(Color(UIColor(named: "#FC6A6FE5") ?? .red).opacity(0.9))
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                                .position(x: 40, y: 7.5)
+                            if let badge = product.badge {
+                                Text(badge.rawValue)
+                                    .foregroundStyle(.white)
+                                    .font(.system(size: 10))
+                                    .fontWeight(.regular)
+                                    .padding(EdgeInsets(top: 2, leading: 12, bottom: 4, trailing: 6))
+                                    .background(Color(UIColor(named: "#FC6A6FE5") ?? .red).opacity(0.9))
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .position(x: 40, y: 7.5)
+                            }
                             VStack {
                                 Button(action: {
                                 }) {
@@ -67,48 +73,38 @@ struct GridView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                             .position(x: 155, y: 35)
                         }
-                        Text("Салат Овощной с Крабовыми Палочками")
+                        Text(product.description)
                             .foregroundStyle(.black)
                             .font(.system(size: 12))
                             .fontWeight(.regular)
                         HStack {
-                            Text("France")
+                            Text(product.country.rawValue)
                                 .foregroundStyle(.black)
                                 .font(.system(size: 12))
                                 .fontWeight(.regular)
-                            Image("France")
+                            Image(product.countryImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
                         }
-                        
-                        Picker("Favorite", selection: $favorite) {
-                            ForEach(favorites, id: \.self) {
-                                Text($0)
-                            }
-                        }
-                        .pickerStyle(.segmented)
                         
                         if !tapOnCard {
                             HStack (alignment: .top) {
                                 VStack (alignment: .leading) {
-                                    Text("260 90")
+                                    Text("\(product.price) ₽/\(product.measure.rawValue)")
                                         .foregroundStyle(.black)
                                         .font(.system(size: 20))
                                         .fontWeight(.bold)
                                         .minimumScaleFactor(0.5)
-                                        .lineLimit(1)
-                                        .frame(maxWidth: .infinity)
                                         .scaledToFit()
-                                    Text("159,0")
-                                        .foregroundStyle(.gray)
-                                        .font(.system(size: 12))
-                                        .fontWeight(.regular)
-                                        .strikethrough()
+                                    if let price = product.oldPrice {
+                                        Text(price)
+                                            .foregroundStyle(.gray)
+                                            .font(.system(size: 12))
+                                            .fontWeight(.regular)
+                                            .strikethrough()
+                                    }
                                 }
-                                Text("₽/кг")
-                                    .foregroundStyle(.black)
-                                    .font(.system(size: 20))
-                                    .fontWeight(.bold)
-                                    .minimumScaleFactor(0.5)
-                                    .scaledToFit()
                                 
                                 Spacer()
                                 
@@ -127,6 +123,14 @@ struct GridView: View {
                         }
                         
                         if tapOnCard {
+                            if product.hasPicker {
+                                Picker("Favorite", selection: $favorite) {
+                                    ForEach(favorites, id: \.self) {
+                                        Text($0)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                            }
                             HStack {
                                 Button(action: {
                                     tapOnCard = false
@@ -135,15 +139,16 @@ struct GridView: View {
                                 }
                                 Spacer()
                                 VStack {
-                                    Text("1 шт")
+                                    Text("1 \(product.measure.rawValue)")
                                         .font(.system(size: 16))
                                         .fontWeight(.bold)
-                                    Text("~10,0 ₽")
+                                    Text("~\(product.price)")
                                         .font(.system(size: 12))
                                         .fontWeight(.regular)
                                 }
                                 Spacer()
                                 Button(action: {
+                                    
                                 }) {
                                     Image("Plus")
                                 }
@@ -156,7 +161,7 @@ struct GridView: View {
                     }
                     .padding(.horizontal, 5)
                     .padding(.bottom, 4)
-                    .background(Color.white)
+                    .background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .shadow(radius: 3)
                 }
@@ -165,6 +170,9 @@ struct GridView: View {
             .padding(.top, 9)
         }
         .background(.white)
+        .onAppear {
+            viewModel.fetch()
+        }
     }
 }
 
