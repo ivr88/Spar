@@ -16,8 +16,9 @@ struct Product: Codable {
     let badge: Badge?
     let hasPicker: Bool
     let price: String
-    let measure: Measure
+    var measure: Measure
     let oldPrice: String?
+    var quantity: Int = 0
 }
 
 enum Country: String, Codable {

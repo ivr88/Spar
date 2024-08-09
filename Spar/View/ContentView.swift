@@ -2,14 +2,15 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var isGridView = true
+    @ObservedObject var viewModel = ViewModel()
 
     var body: some View {
         NavigationView {
             Group {
                 if isGridView {
-                    GridView()
+                    GridView(viewModel: viewModel)
                 } else {
-                    ListView()
+                    ListView(viewModel: viewModel)
                 }
             }
             .toolbar {
@@ -24,6 +25,23 @@ struct ContentView: View {
                                 Image(isGridView ? "List" : "Grid")
                             )
                             .cornerRadius(12)
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack {
+                        if !viewModel.favoriteProducts.isEmpty {
+                            NavigationLink(destination: FavoriteView(viewModel: viewModel)) {
+                                Image(systemName: "heart.fill")
+                                    .foregroundColor(.green)
+                            }
+                        }
+
+                        if !viewModel.selectedProducts.isEmpty {
+                            NavigationLink(destination: CartView(viewModel: viewModel)) {
+                                Image(systemName: "cart.fill")
+                                    .foregroundColor(.green)
+                            }
+                        }
                     }
                 }
             }

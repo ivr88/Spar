@@ -1,11 +1,8 @@
 import SwiftUI
 
 struct GridView: View {
-    @State private var favorite = "Шт" //временно
-    var favorites = ["Шт", "Кг"] //временно
+    var favorites = ["Шт", "Кг"] // временно
     @ObservedObject var viewModel = ViewModel()
-    @State var tapOnCard = false
-    @State var tapOnHeart = false
 
     let columns = [
         GridItem(.flexible()),
@@ -38,7 +35,7 @@ struct GridView: View {
                                         .fontWeight(.bold)
                                 }
                             }
-                            .offset(y: 70)
+                            .frame(alignment: .bottom)
                             if let badge = product.badge {
                                 Text(badge.rawValue)
                                     .foregroundStyle(.white)
@@ -47,7 +44,7 @@ struct GridView: View {
                                     .padding(EdgeInsets(top: 2, leading: 12, bottom: 4, trailing: 6))
                                     .background(Color(UIColor(named: "#FC6A6FE5") ?? .red).opacity(0.9))
                                     .clipShape(RoundedRectangle(cornerRadius: 6))
-                                    .position(x: 40, y: 7.5)
+                                    .position(x: 0, y: 0)
                             }
                             VStack {
                                 Button(action: {
@@ -56,16 +53,11 @@ struct GridView: View {
                                         .padding(8)
                                 }
                                 Button(action: {
-                                    tapOnHeart.toggle()
+                                    viewModel.toggleFavorite(for: product)
                                 }) {
-                                    if tapOnHeart {
-                                        Image(systemName: "heart.fill")
-                                            .foregroundStyle(Color(UIColor(named: "#15B742") ?? .red))
-                                            .padding(8)
-                                    } else {
-                                        Image(systemName: "heart")
-                                            .padding(8)
-                                    }
+                                    Image(systemName: viewModel.isFavorite(product) ? "heart.fill" : "heart")
+                                        .foregroundStyle(viewModel.isFavorite(product) ? Color(UIColor(named: "#15B742") ?? .red) : .gray)
+                                        .padding(8)
                                 }
                             }
                             .foregroundStyle(.gray)
@@ -88,8 +80,8 @@ struct GridView: View {
                                 .frame(width: 16, height: 16)
                         }
                         
-                        if !tapOnCard {
-                            HStack (alignment: .top) {
+                        if !viewModel.selectedProducts.contains(where: { $0.id == product.id }) {
+                            HStack {
                                 VStack (alignment: .leading) {
                                     Text("\(product.price) ₽/\(product.measure.rawValue)")
                                         .foregroundStyle(.black)
@@ -109,22 +101,20 @@ struct GridView: View {
                                 Spacer()
                                 
                                 Button(action: {
-                                    tapOnCard = true
+                                    viewModel.increaseQuantity(for: product)
                                 }) {
                                     Rectangle()
                                         .fill(Color(UIColor(named: "#15B742") ?? .red))
                                         .frame(width: 40, height: 36)
                                         .clipShape(RoundedRectangle(cornerRadius: 18))
                                         .overlay(
-                                            Image("Card")
+                                            Image("Cart")
                                         )
                                 }
                             }
-                        }
-                        
-                        if tapOnCard {
+                        } else {
                             if product.hasPicker {
-                                Picker("Favorite", selection: $favorite) {
+                                Picker("Выбор единицы измерения", selection: $viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].measure) {
                                     ForEach(favorites, id: \.self) {
                                         Text($0)
                                     }
@@ -133,13 +123,14 @@ struct GridView: View {
                             }
                             HStack {
                                 Button(action: {
-                                    tapOnCard = false
+                                    viewModel.decreaseQuantity(for: product)
                                 }) {
-                                    Image("Minus")
+                                    Image(systemName: "minus.circle")
+                                        .frame(width: 20, height: 20)
                                 }
                                 Spacer()
                                 VStack {
-                                    Text("1 \(product.measure.rawValue)")
+                                    Text("\(viewModel.selectedProducts.first(where: { $0.id == product.id })!.quantity) \(product.measure.rawValue)")
                                         .font(.system(size: 16))
                                         .fontWeight(.bold)
                                     Text("~\(product.price)")
@@ -148,9 +139,10 @@ struct GridView: View {
                                 }
                                 Spacer()
                                 Button(action: {
-                                    
+                                    viewModel.increaseQuantity(for: product)
                                 }) {
-                                    Image("Plus")
+                                    Image(systemName: "plus.circle")
+                                        .frame(width: 20, height: 20)
                                 }
                             }
                             .padding(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
@@ -172,6 +164,8 @@ struct GridView: View {
         .background(.white)
         .onAppear {
             viewModel.fetch()
+            viewModel.loadSelectedProducts()
+            viewModel.loadFavoriteProducts()
         }
     }
 }
