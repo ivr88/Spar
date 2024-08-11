@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1C0D59A62C69401F001C1E22 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C0D59A52C69401F001C1E22 /* SplashView.swift */; };
+		1C0D59A82C69405C001C1E22 /* CoordinatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C0D59A72C69405C001C1E22 /* CoordinatorView.swift */; };
 		1C1601652C667D0900FDA788 /* ListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C1601622C667D0900FDA788 /* ListView.swift */; };
 		1C1601662C667D0900FDA788 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C1601632C667D0900FDA788 /* ContentView.swift */; };
 		1C1601672C667D0900FDA788 /* GridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C1601642C667D0900FDA788 /* GridView.swift */; };
@@ -20,6 +22,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1C0D59A52C69401F001C1E22 /* SplashView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		1C0D59A72C69405C001C1E22 /* CoordinatorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoordinatorView.swift; sourceTree = "<group>"; };
 		1C1601622C667D0900FDA788 /* ListView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListView.swift; sourceTree = "<group>"; };
 		1C1601632C667D0900FDA788 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1C1601642C667D0900FDA788 /* GridView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GridView.swift; sourceTree = "<group>"; };
@@ -100,6 +104,8 @@
 		1CD3D7FD2C62353200A56C13 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				1C0D59A72C69405C001C1E22 /* CoordinatorView.swift */,
+				1C0D59A52C69401F001C1E22 /* SplashView.swift */,
 				1C1601632C667D0900FDA788 /* ContentView.swift */,
 				1C1601642C667D0900FDA788 /* GridView.swift */,
 				1C1601622C667D0900FDA788 /* ListView.swift */,
@@ -196,6 +202,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1C1601652C667D0900FDA788 /* ListView.swift in Sources */,
+				1C0D59A82C69405C001C1E22 /* CoordinatorView.swift in Sources */,
 				1C1601662C667D0900FDA788 /* ContentView.swift in Sources */,
 				1C1601692C667D2B00FDA788 /* FavoriteView.swift in Sources */,
 				1C7A424C2C63BA9100911703 /* Model.swift in Sources */,
@@ -203,6 +210,7 @@
 				1C1601672C667D0900FDA788 /* GridView.swift in Sources */,
 				1C16016B2C667D4C00FDA788 /* CartView.swift in Sources */,
 				1CD3D7EE2C6234EB00A56C13 /* SparApp.swift in Sources */,
+				1C0D59A62C69401F001C1E22 /* SplashView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

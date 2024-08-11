@@ -43,6 +43,7 @@ struct FavoriteView: View {
         .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
         .background(.white)
+        .toolbarBackground(.white, for: .navigationBar)
     }
 }
 

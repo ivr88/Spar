@@ -58,6 +58,7 @@ struct CartView: View {
         .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
         .background(.white)
+        .toolbarBackground(.white, for: .navigationBar)
     }
 }
 

@@ -40,14 +40,14 @@ struct GridView: View {
                                         Button(action: {
                                             // Действие для списка
                                         }) {
-                                            Image(systemName: "list.bullet.rectangle.portrait")
+                                            Image("Tallon")
                                                 .padding(8)
                                         }
                                         Button(action: {
                                             viewModel.toggleFavorite(for: product)
                                         }) {
                                             Image(systemName: viewModel.isFavorite(product) ? "heart.fill" : "heart")
-                                                .foregroundColor(viewModel.isFavorite(product) ? .green : .gray)
+                                                .foregroundColor(viewModel.isFavorite(product) ? Color(UIColor(named: "#15B742") ?? .red) : .gray)
                                                 .padding(8)
                                         }
                                     }
@@ -73,108 +73,112 @@ struct GridView: View {
 
                                     if product.discount {
                                         Text(viewModel.discountCalculation(newPrice: product.price, oldPrice: product.oldPrice))
-                                            .foregroundColor(.red)
+                                            .foregroundColor(Color(UIColor(named: "#C32323") ?? .red))
                                             .font(.system(size: 16))
                                             .fontWeight(.bold)
                                     }
                                 }
                                 .padding([.bottom, .leading, .trailing], 5)
                             }
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
                         }
-                        Text(product.description)
-                            .foregroundColor(.black)
-                            .font(.system(size: 12))
-                            .fontWeight(.regular)
-                        HStack {
-                            Text(product.country.rawValue)
+                        VStack (alignment: .leading) {
+                            Text(product.description)
                                 .foregroundColor(.black)
                                 .font(.system(size: 12))
                                 .fontWeight(.regular)
-                            Image(product.countryImage)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 16, height: 16)
-                        }
-                        
-                        if !viewModel.selectedProducts.contains(where: { $0.id == product.id }) {
                             HStack {
-                                VStack(alignment: .leading) {
-                                    Text("\(product.price) ₽/\(product.selectedMeasure.rawValue)")
-                                        .foregroundColor(.black)
-                                        .font(.system(size: 20))
-                                        .fontWeight(.bold)
-                                    if let price = product.oldPrice {
-                                        Text(price)
-                                            .foregroundColor(.gray)
-                                            .font(.system(size: 12))
-                                            .strikethrough()
-                                    }
-                                }
-                                
-                                Spacer()
-                                
-                                Button(action: {
-                                    viewModel.selectedProducts.append(product)
-                                    viewModel.saveSelectedProducts()
-                                }) {
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .fill(Color.green)
-                                        .frame(width: 40, height: 36)
-                                        .overlay(
-                                            Image("Cart")
-                                                .foregroundColor(.white)
-                                        )
-                                }
+                                Text(product.country.rawValue)
+                                    .foregroundColor(.black)
+                                    .font(.system(size: 12))
+                                    .fontWeight(.regular)
+                                Image(product.countryImage)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
                             }
-                        } else {
-                            VStack {
-                                if product.hasPicker {
-                                    // Picker для выбора единицы измерения
-                                    Picker("Выбор единицы измерения", selection: $viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure) {
-                                        ForEach(product.measures, id: \.self) { measure in
-                                            Text(measure.rawValue)
+                            
+                            if !viewModel.selectedProducts.contains(where: { $0.id == product.id }) {
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        Text("\(product.price) ₽/\(product.selectedMeasure.rawValue)")
+                                            .foregroundColor(.black)
+                                            .font(.system(size: 20))
+                                            .fontWeight(.bold)
+                                        if let price = product.oldPrice {
+                                            Text(price)
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 12))
+                                                .strikethrough()
                                         }
                                     }
-                                    .pickerStyle(.segmented)
-                                    .onChange(of: viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure) { newValue in
-                                        // Автоматическое изменение количества при смене единицы измерения
-                                        viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedQuantity = newValue == .kilo ? .forKilo : .forThings
+                                    
+                                    Spacer()
+                                    
+                                    Button(action: {
+                                        viewModel.selectedProducts.append(product)
+                                        viewModel.saveSelectedProducts()
+                                    }) {
+                                        RoundedRectangle(cornerRadius: 18)
+                                            .fill(Color(UIColor(named: "#15B742") ?? .red))
+                                            .frame(width: 40, height: 36)
+                                            .overlay(
+                                                Image("Cart")
+                                                    .foregroundColor(.white)
+                                            )
                                     }
                                 }
-                                
-                                HStack {
-                                    Button(action: {
-                                        viewModel.decreaseQuantity(for: product)
-                                    }) {
-                                        Image("Minus")
-                                            .frame(width: 20, height: 20)
+                            } else {
+                                VStack {
+                                    if product.hasPicker {
+                                        Picker("Выбор единицы измерения", selection: $viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure) {
+                                            ForEach(product.measures, id: \.self) { measure in
+                                                Text(measure.rawValue)
+                                            }
+                                        }
+                                        .pickerStyle(.segmented)
+                                        .onChange(of: viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure) { newValue in
+                                            viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedQuantity = newValue == .kilo ? .forKilo : .forThings
+                                        }
                                     }
-                                    Spacer()
-                                    VStack {
-                                        Text("\(viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedQuantity.rawValue) \(viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure.rawValue)")
-                                        Text("\(viewModel.calculatePrice(for: product)) ₽")
+                                    
+                                    HStack {
+                                        Button(action: {
+                                            viewModel.decreaseQuantity(for: product)
+                                        }) {
+                                            Image("Minus")
+                                                .frame(width: 20, height: 20)
+                                        }
+                                        Spacer()
+                                        VStack {
+                                            Text("\(viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedQuantity.rawValue) \(viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure.rawValue)")
+                                            Text("\(viewModel.calculatePrice(for: product)) ₽")
+                                        }
+                                        .font(.system(size: 14))
+                                        .fontWeight(.bold)
+                                        Spacer()
+                                        Button(action: {
+                                            viewModel.increaseQuantity(for: product)
+                                        }) {
+                                            Image("Plus")
+                                                .frame(width: 20, height: 20)
+                                        }
                                     }
-                                    .font(.system(size: 14))
-                                    .fontWeight(.bold)
-                                    Spacer()
-                                    Button(action: {
-                                        viewModel.increaseQuantity(for: product)
-                                    }) {
-                                        Image("Plus")
-                                            .frame(width: 20, height: 20)
-                                    }
+                                    .padding()
+                                    .background(Color(UIColor(named: "#15B742") ?? .red))
+                                    .clipShape(.rect(cornerRadius: 50))
+                                    .foregroundColor(.white)
                                 }
-                                .padding()
-                                .background(Color(UIColor(named: "#15B742") ?? .red))
-                                .clipShape(.rect(cornerRadius: 50))
-                                .foregroundColor(.white)
                             }
                         }
+                        .padding([.horizontal, .bottom], 5)
                     }
-                    .padding()
+                    .background(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(radius: 3)
                 }
             }
+            .padding(.horizontal, 16)
+            .toolbarBackground(.white, for: .navigationBar)
         }
         .background(.white)
         .onAppear {
