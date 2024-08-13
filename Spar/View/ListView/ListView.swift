@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ListView: View {
     @ObservedObject var viewModel = ViewModel()
-    @State var tapOnCard = false
 
     var body: some View {
         List(viewModel.model?.product ?? [], id: \.id) { product in
@@ -75,10 +74,12 @@ struct ListView: View {
                                     .foregroundColor(.black)
                                     .font(.system(size: 12))
                                     .fontWeight(.regular)
-                                Image(product.countryImage)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 16, height: 16)
+                                AsyncImage(url: URL(string: product.countryImage)) { phase in
+                                    phase.image?
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 16, height: 16)
+                                }
                             }
                         }
                         Spacer()
@@ -106,12 +107,12 @@ struct ListView: View {
                     if !viewModel.selectedProducts.contains(where: { $0.id == product.id }) {
                         HStack {
                             VStack(alignment: .leading) {
-                                Text("\(product.price) ₽/\(product.selectedMeasure.rawValue)")
+                                Text("\(product.price, specifier: "%.2f") ₽/\(product.selectedMeasure.rawValue)")
                                     .foregroundColor(.black)
                                     .font(.system(size: 20))
                                     .fontWeight(.bold)
                                 if let price = product.oldPrice {
-                                    Text(price)
+                                    Text("\(price, specifier: "%.2f") ₽")
                                         .foregroundColor(.gray)
                                         .font(.system(size: 12))
                                         .strikethrough()
@@ -137,15 +138,11 @@ struct ListView: View {
                     } else {
                         VStack {
                             if product.hasPicker {
-                                Picker("Выбор единицы измерения", selection: $viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure) {
-                                    ForEach(product.measures, id: \.self) { measure in
-                                        Text(measure.rawValue)
-                                    }
+                                Picker("Единица измерения", selection: $viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure) {
+                                    Text("Шт").tag(Measure.pieces)
+                                    Text("Кг").tag(Measure.kilograms)
                                 }
-                                .pickerStyle(.segmented)
-                                .onChange(of: viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure) { newValue in
-                                    viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedQuantity = newValue == .kilo ? .forKilo : .forThings
-                                }
+                                .pickerStyle(SegmentedPickerStyle())
                             }
                             
                             HStack {
@@ -158,11 +155,13 @@ struct ListView: View {
                                 .buttonStyle(PlainButtonStyle())
                                 Spacer()
                                 VStack {
-                                    Text("\(viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedQuantity.rawValue) \(viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure.rawValue)")
-                                    Text("\(viewModel.calculatePrice(for: product)) ₽")
+                                    Text("\(viewModel.quantityText(for: product))")
+                                        .font(.system(size: 16))
+                                        .fontWeight(.bold)
+                                    Text("~\(viewModel.totalCost(for: product))")
+                                        .font(.system(size: 14))
+                                        .fontWeight(.regular)
                                 }
-                                .font(.system(size: 14))
-                                .fontWeight(.bold)
                                 Spacer()
                                 Button(action: {
                                     viewModel.increaseQuantity(for: product)
@@ -173,9 +172,9 @@ struct ListView: View {
                                 .buttonStyle(PlainButtonStyle())
                             }
                             .contentShape(Rectangle())
-                            .padding()
+                            .padding(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
                             .background(Color(UIColor(named: "#15B742") ?? .red))
-                            .clipShape(.rect(cornerRadius: 50))
+                            .clipShape(RoundedRectangle(cornerRadius: 50))
                             .foregroundColor(.white)
                         }
                     }
@@ -193,6 +192,8 @@ struct ListView: View {
         .toolbarBackground(.white, for: .navigationBar)
         .onAppear {
             viewModel.fetch()
+            viewModel.loadSelectedProducts()
+            viewModel.loadFavoriteProducts()
         }
     }
 }

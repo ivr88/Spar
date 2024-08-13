@@ -1,5 +1,3 @@
-import Foundation
-
 struct Model: Codable {
     let product: [Product]
 }
@@ -15,12 +13,10 @@ struct Product: Codable, Identifiable {
     let discount: Bool
     let badge: Badge?
     let hasPicker: Bool
-    let price: String
-    var measures: [Measure] 
-    var quantities: [Quantity]
-    let oldPrice: String?
+    let price: Double
+    let oldPrice: Double?
     var selectedMeasure: Measure
-    var selectedQuantity: Quantity
+    var quantity: Double
 }
 
 enum Country: String, Codable {
@@ -35,12 +31,7 @@ enum Badge: String, Codable {
     case blueBadge = "Новинка"
 }
 
-enum Measure: String, Codable, CaseIterable {
-    case kilo = "кг"
-    case things = "шт"
-}
-
-enum Quantity: Double, Codable, CaseIterable {
-    case forKilo = 0.3
-    case forThings = 1.0
+enum Measure: String, Codable {
+    case pieces = "шт"
+    case kilograms = "кг"
 }

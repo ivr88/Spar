@@ -6,12 +6,11 @@ final class ViewModel: ObservableObject {
     @Published var favoriteProducts: [Product] = []
     @Published var model: Model?
     
-    // Константы для шагов изменения количества
     private let kiloStep: Double = 0.3
     private let thingsStep: Double = 1.0
 
     func fetch() {
-        guard let url = URL(string: "https://run.mocky.io/v3/a9d42bcb-edc6-4e99-ba1a-549d877277ae") else {
+        guard let url = URL(string: "https://run.mocky.io/v3/4091b4cf-827b-4e0a-86ef-483e95be2ea4") else {
             return
         }
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
@@ -31,13 +30,11 @@ final class ViewModel: ObservableObject {
         task.resume()
     }
     
-    func discountCalculation(newPrice: String, oldPrice: String?) -> String {
-        guard let oldPrice = oldPrice,
-              let newPriceDouble = Double(newPrice),
-              let oldPriceDouble = Double(oldPrice) else {
+    func discountCalculation(newPrice: Double, oldPrice: Double?) -> String {
+        guard let oldPrice = oldPrice else {
             return ""
         }
-        let discount = ((oldPriceDouble - newPriceDouble) / oldPriceDouble) * 100
+        let discount = ((oldPrice - newPrice) / oldPrice) * 100
         return String(format: "%.1f%%", discount)
     }
     
@@ -82,34 +79,54 @@ final class ViewModel: ObservableObject {
 
     func increaseQuantity(for product: Product) {
         if let index = selectedProducts.firstIndex(where: { $0.id == product.id }) {
-            let step = product.selectedMeasure == .kilo ? kiloStep : thingsStep
-            let currentQuantity = selectedProducts[index].selectedQuantity
-            let newQuantityValue = currentQuantity.rawValue + step
-            selectedProducts[index].selectedQuantity = Quantity(rawValue: newQuantityValue) ?? currentQuantity
-            saveSelectedProducts()
-        }
-        
-    }
-
-    func decreaseQuantity(for product: Product) {
-        if let index = selectedProducts.firstIndex(where: { $0.id == product.id }) {
-            let step = product.selectedMeasure == .kilo ? kiloStep : thingsStep
-            let currentQuantity = selectedProducts[index].selectedQuantity
-            let newQuantityValue = currentQuantity.rawValue - step
-            if newQuantityValue <= 0 {
-                selectedProducts.remove(at: index)
+            if product.selectedMeasure == .pieces {
+                selectedProducts[index].quantity += thingsStep
             } else {
-                selectedProducts[index].selectedQuantity = Quantity(rawValue: newQuantityValue) ?? currentQuantity
+                selectedProducts[index].quantity += kiloStep
             }
             saveSelectedProducts()
         }
     }
     
-    // Функция для вычисления цены в зависимости от количества
-    func calculatePrice(for product: Product) -> String {
-        let pricePerUnit = Double(product.price) ?? 0.0
-        let quantityMultiplier = selectedProducts.first(where: { $0.id == product.id })?.selectedQuantity.rawValue ?? 0.0
-        let totalPrice = pricePerUnit * quantityMultiplier
-        return String(format: "%.2f", totalPrice)
+    func decreaseQuantity(for product: Product) {
+        if let index = selectedProducts.firstIndex(where: { $0.id == product.id }) {
+            if product.selectedMeasure == .pieces {
+                if selectedProducts[index].quantity - thingsStep <= 0 {
+                    selectedProducts.remove(at: index)
+                } else {
+                    selectedProducts[index].quantity -= thingsStep
+                }
+            } else if product.selectedMeasure == .kilograms {
+                if selectedProducts[index].quantity - kiloStep <= 0 {
+                    selectedProducts.remove(at: index)
+                } else {
+                    selectedProducts[index].quantity -= kiloStep
+                }
+            }
+            saveSelectedProducts()
+        }
+    }
+    
+    func totalCost(for product: Product) -> String {
+        if let index = selectedProducts.firstIndex(where: { $0.id == product.id }) {
+            let calculatedCost = selectedProducts[index].price * selectedProducts[index].quantity
+            return String(format: "%.2f ₽", calculatedCost)
+        }
+        return "0.00 ₽"
+    }
+        
+    func quantityText(for product: Product) -> String {
+        if let index = selectedProducts.firstIndex(where: { $0.id == product.id }) {
+            let quantity = selectedProducts[index].quantity
+            let formattedQuantity: String
+            
+            if selectedProducts[index].selectedMeasure == .pieces {
+                formattedQuantity = String(format: "%.0f", quantity)
+            } else {
+                formattedQuantity = String(format: "%.1f", quantity)
+            }
+            return "\(formattedQuantity) \(selectedProducts[index].selectedMeasure.rawValue)"
+        }
+        return "0 \(product.selectedMeasure.rawValue)"
     }
 }

@@ -18,22 +18,23 @@ struct GridView: View {
                                 .resizable()
                                 .scaledToFit()
                             
-                            VStack (alignment: .leading) {
-                                HStack (alignment: .top) {
+                            VStack(alignment: .leading) {
+                                HStack(alignment: .top) {
                                     if let badge = product.badge {
                                         let text = Text(badge.rawValue)
                                             .foregroundColor(.white)
                                             .font(.system(size: 10))
                                             .fontWeight(.regular)
                                             .padding(EdgeInsets(top: 2, leading: 12, bottom: 4, trailing: 6))
+                                        
                                         switch badge {
-                                            case .redBadge:
-                                                text.background(Color(UIColor(named: "#FC6A6FE5") ?? .red).opacity(0.9)).clipShape(RoundedRectangle(cornerRadius: 6))
-                                                case .geenBadge:
-                                                text.background(Color(UIColor(named: "#5BCD7BE5") ?? .red).opacity(0.9)).clipShape(RoundedRectangle(cornerRadius: 6))
-                                                case .blueBadge:
-                                                text.background(Color(UIColor(named: "#7A79BAE5") ?? .red).opacity(0.9)).clipShape(RoundedRectangle(cornerRadius: 6))
-                                            }
+                                        case .redBadge:
+                                            text.background(Color(UIColor(named: "#FC6A6FE5") ?? .red).opacity(0.9)).clipShape(RoundedRectangle(cornerRadius: 6))
+                                        case .geenBadge:
+                                            text.background(Color(UIColor(named: "#5BCD7BE5") ?? .red).opacity(0.9)).clipShape(RoundedRectangle(cornerRadius: 6))
+                                        case .blueBadge:
+                                            text.background(Color(UIColor(named: "#7A79BAE5") ?? .red)).clipShape(RoundedRectangle(cornerRadius: 6))
+                                        }
                                     }
                                     Spacer()
                                     VStack {
@@ -57,7 +58,7 @@ struct GridView: View {
 
                                 Spacer()
 
-                                HStack (alignment: .bottom) {
+                                HStack(alignment: .bottom) {
                                     if let rating = product.rating {
                                         HStack {
                                             Image(systemName: "star.fill")
@@ -81,7 +82,7 @@ struct GridView: View {
                                 .padding([.bottom, .leading, .trailing], 5)
                             }
                         }
-                        VStack (alignment: .leading) {
+                        VStack(alignment: .leading) {
                             Text(product.description)
                                 .foregroundColor(.black)
                                 .font(.system(size: 12))
@@ -91,21 +92,22 @@ struct GridView: View {
                                     .foregroundColor(.black)
                                     .font(.system(size: 12))
                                     .fontWeight(.regular)
-                                Image(product.countryImage)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 16, height: 16)
+                                AsyncImage(url: URL(string: product.countryImage)) { phase in
+                                    phase.image?
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 16, height: 16)
+                                }
                             }
-                            
                             if !viewModel.selectedProducts.contains(where: { $0.id == product.id }) {
                                 HStack {
                                     VStack(alignment: .leading) {
-                                        Text("\(product.price) ₽/\(product.selectedMeasure.rawValue)")
+                                        Text("\(product.price, specifier: "%.2f") ₽/\(product.selectedMeasure.rawValue)")
                                             .foregroundColor(.black)
                                             .font(.system(size: 20))
                                             .fontWeight(.bold)
                                         if let price = product.oldPrice {
-                                            Text(price)
+                                            Text("\(price, specifier: "%.2f") ₽")
                                                 .foregroundColor(.gray)
                                                 .font(.system(size: 12))
                                                 .strikethrough()
@@ -130,15 +132,11 @@ struct GridView: View {
                             } else {
                                 VStack {
                                     if product.hasPicker {
-                                        Picker("Выбор единицы измерения", selection: $viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure) {
-                                            ForEach(product.measures, id: \.self) { measure in
-                                                Text(measure.rawValue)
-                                            }
+                                        Picker("Единица измерения", selection: $viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure) {
+                                            Text("Шт").tag(Measure.pieces)
+                                            Text("Кг").tag(Measure.kilograms)
                                         }
-                                        .pickerStyle(.segmented)
-                                        .onChange(of: viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure) { newValue in
-                                            viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedQuantity = newValue == .kilo ? .forKilo : .forThings
-                                        }
+                                        .pickerStyle(SegmentedPickerStyle())
                                     }
                                     
                                     HStack {
@@ -150,11 +148,13 @@ struct GridView: View {
                                         }
                                         Spacer()
                                         VStack {
-                                            Text("\(viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedQuantity.rawValue) \(viewModel.selectedProducts[viewModel.selectedProducts.firstIndex(where: { $0.id == product.id })!].selectedMeasure.rawValue)")
-                                            Text("\(viewModel.calculatePrice(for: product)) ₽")
+                                            Text("\(viewModel.quantityText(for: product))")
+                                                .font(.system(size: 16))
+                                                .fontWeight(.bold)
+                                            Text("~\(viewModel.totalCost(for: product))")
+                                                .font(.system(size: 14))
+                                                .fontWeight(.regular)
                                         }
-                                        .font(.system(size: 14))
-                                        .fontWeight(.bold)
                                         Spacer()
                                         Button(action: {
                                             viewModel.increaseQuantity(for: product)
@@ -163,16 +163,16 @@ struct GridView: View {
                                                 .frame(width: 20, height: 20)
                                         }
                                     }
-                                    .padding()
+                                    .padding(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
                                     .background(Color(UIColor(named: "#15B742") ?? .red))
-                                    .clipShape(.rect(cornerRadius: 50))
+                                    .clipShape(Capsule())
                                     .foregroundColor(.white)
                                 }
                             }
                         }
                         .padding([.horizontal, .bottom], 5)
                     }
-                    .background(.white)
+                    .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .shadow(radius: 3)
                 }
@@ -180,7 +180,7 @@ struct GridView: View {
             .padding(.horizontal, 16)
             .toolbarBackground(.white, for: .navigationBar)
         }
-        .background(.white)
+        .background(Color.white)
         .onAppear {
             viewModel.fetch()
             viewModel.loadSelectedProducts()

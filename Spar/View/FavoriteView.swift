@@ -13,7 +13,7 @@ struct FavoriteView: View {
                 VStack(alignment: .leading) {
                     Text(product.description)
                         .font(.headline)
-                    Text("\(product.price) ₽")
+                    Text("1 \(product.selectedMeasure.rawValue) х \(product.price, specifier: "%.2f") ₽")
                         .font(.subheadline)
                 }
                 .foregroundStyle(.black)

@@ -41,7 +41,6 @@ struct ContentView: View {
                                     .cornerRadius(12)
                             }
                         }
-
                         if !viewModel.selectedProducts.isEmpty {
                             NavigationLink(destination: CartView(viewModel: viewModel).toolbarRole(.editor)) {
                                 Rectangle()
