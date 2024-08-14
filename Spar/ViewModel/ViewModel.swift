@@ -10,7 +10,7 @@ final class ViewModel: ObservableObject {
     private let thingsStep: Double = 1.0
 
     func fetch() {
-        guard let url = URL(string: "https://run.mocky.io/v3/4091b4cf-827b-4e0a-86ef-483e95be2ea4") else {
+        guard let url = URL(string: "https://run.mocky.io/v3/f17dd595-452a-4f58-bf6e-6e43471906db") else {
             return
         }
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
@@ -79,7 +79,7 @@ final class ViewModel: ObservableObject {
 
     func increaseQuantity(for product: Product) {
         if let index = selectedProducts.firstIndex(where: { $0.id == product.id }) {
-            if product.selectedMeasure == .pieces {
+            if selectedProducts[index].selectedMeasure == .pieces {
                 selectedProducts[index].quantity += thingsStep
             } else {
                 selectedProducts[index].quantity += kiloStep
@@ -90,13 +90,13 @@ final class ViewModel: ObservableObject {
     
     func decreaseQuantity(for product: Product) {
         if let index = selectedProducts.firstIndex(where: { $0.id == product.id }) {
-            if product.selectedMeasure == .pieces {
+            if selectedProducts[index].selectedMeasure == .pieces {
                 if selectedProducts[index].quantity - thingsStep <= 0 {
                     selectedProducts.remove(at: index)
                 } else {
                     selectedProducts[index].quantity -= thingsStep
                 }
-            } else if product.selectedMeasure == .kilograms {
+            } else if selectedProducts[index].selectedMeasure == .kilograms {
                 if selectedProducts[index].quantity - kiloStep <= 0 {
                     selectedProducts.remove(at: index)
                 } else {
@@ -109,8 +109,13 @@ final class ViewModel: ObservableObject {
     
     func totalCost(for product: Product) -> String {
         if let index = selectedProducts.firstIndex(where: { $0.id == product.id }) {
-            let calculatedCost = selectedProducts[index].price * selectedProducts[index].quantity
-            return String(format: "%.2f ₽", calculatedCost)
+            if selectedProducts[index].selectedMeasure == .kilograms {
+                let calculatedCost = selectedProducts[index].price * selectedProducts[index].quantity
+                return String(format: "%.2f ₽", calculatedCost)
+            } else {
+                let calculatedCost = selectedProducts[index].price * selectedProducts[index].quantity
+                return String(format: "%.2f ₽", calculatedCost)
+            }
         }
         return "0.00 ₽"
     }
