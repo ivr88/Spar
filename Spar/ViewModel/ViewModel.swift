@@ -10,7 +10,7 @@ final class ViewModel: ObservableObject {
     private let thingsStep: Double = 1.0
 
     func fetch() {
-        guard let url = URL(string: "https://run.mocky.io/v3/f17dd595-452a-4f58-bf6e-6e43471906db") else {
+        guard let url = URL(string: "https://run.mocky.io/v3/1e2f39a9-7d6f-4b45-83a2-c25a8a38a3d6") else {
             return
         }
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
